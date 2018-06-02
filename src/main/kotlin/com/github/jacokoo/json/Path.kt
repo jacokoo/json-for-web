@@ -27,7 +27,7 @@ enum class MatchResult {
     INCLUDED, NOT_FOUND, EXCLUDED
 }
 
-data class Path(val items: List<String> = listOf()) {
+data class Path internal constructor(val items: List<String> = listOf()) {
     val depth: Int = items.size
     operator fun get(level: Int): String = items[level]
     fun push(name: String): Path = Path(items + name)
@@ -55,17 +55,17 @@ interface PathItem {
     }
 }
 
-class IncludeAllPathItem: PathItem {
+class IncludeAllPathItem internal constructor(): PathItem {
     override fun match(name: String) = MatchResult.INCLUDED
     override fun toString() = "*"
 }
 
-class IncludedPathItem(val items: Set<String>): PathItem {
+class IncludedPathItem internal constructor(val items: Set<String>): PathItem {
     override fun match(name: String) = if (items.contains(name)) MatchResult.INCLUDED else MatchResult.NOT_FOUND
     override fun toString() = "(${items.joinToString()})"
 }
 
-class ExcludedPathItem(val items: Set<String>): PathItem {
+class ExcludedPathItem internal constructor(val items: Set<String>): PathItem {
     override fun match(name: String) = if (items.contains(name)) MatchResult.EXCLUDED else MatchResult.INCLUDED
     override fun toString() = "(^${items.joinToString()})"
 }
@@ -83,7 +83,7 @@ interface PathMatcher {
     }
 }
 
-class DefaultPathMatcher(val items: List<PathItem>): PathMatcher {
+class DefaultPathMatcher internal constructor(val items: List<PathItem>): PathMatcher {
     override val maxDepth: Int = items.size
     override fun match(path: Path): MatchResult {
         if (path.depth > items.size) return MatchResult.NOT_FOUND
@@ -97,7 +97,7 @@ class DefaultPathMatcher(val items: List<PathItem>): PathMatcher {
     override fun toString() = items.joinToString(separator = ".")
 }
 
-class CompositePathMatcher(val matchers: List<PathMatcher>): PathMatcher {
+class CompositePathMatcher internal constructor(val matchers: List<PathMatcher>): PathMatcher {
     override val maxDepth: Int = matchers.maxBy { it.maxDepth }?.let { it.maxDepth } ?: 0
 
     override fun match(path: Path): MatchResult {

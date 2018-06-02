@@ -115,25 +115,25 @@ abstract class ComplexSerializer(protected val context: SerializeContext, protec
 
         if (Collection::class.java.isAssignableFrom(clazz)) {
             if (p.depth > matcher.maxDepth) return cache(clazz, EmptySerializer.DEFAULT)
-            return CollectionSerializer(context, matcher, p).also { map[clazz] = it }
+            return cache(clazz, CollectionSerializer(context, matcher, p))
         }
 
         if (Map::class.java.isAssignableFrom(clazz)) {
             if (p.depth >= matcher.maxDepth) return cache(clazz, EmptySerializer.DEFAULT)
-            return MapSerializer(context, matcher, p).also { map[clazz] = it }
+            return cache(clazz, MapSerializer(context, matcher, p))
         }
 
         if (Number::class.java.isAssignableFrom(clazz)) {
-            return ToStringSerializer().also { map[clazz] = it }
+            return cache(clazz, ToStringSerializer())
         }
 
         val pkg = clazz.`package`.name
         if (pkg.startsWith("java") || pkg.startsWith("kotlin")) {
-            return ToQuotedStringSerializer().also { map[clazz] = it }
+            return cache(clazz, ToQuotedStringSerializer())
         }
 
         if (p.depth >= matcher.maxDepth) return cache(clazz, EmptySerializer.DEFAULT)
-        return ObjectSerializer(clazz, context, matcher, p).also { map[clazz] = it }
+        return cache(clazz, ObjectSerializer(clazz, context, matcher, p))
     }
 
     private fun cache(clazz: Class<*>, ser: Serializer) = ser.also { map[clazz] = it }

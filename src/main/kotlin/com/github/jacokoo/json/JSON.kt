@@ -23,7 +23,7 @@
 
 package com.github.jacokoo.json
 
-class JSON(
+class JSON private constructor(
     matcher: PathMatcher,
     context: SerializeContext = SerializeContext.DEFAULT,
     path: Path = Path()
