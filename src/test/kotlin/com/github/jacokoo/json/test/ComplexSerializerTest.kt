@@ -142,9 +142,9 @@ class ComplexSerializerTest: FreeSpec({
             } shouldBe "{\"name\":\"m1\"}"
 
             write {
-                ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("*"), Path())
+                ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("(^children)"), Path())
                     .write(it, Menu.create())
-            } shouldBe "{\"name\":\"m1\",\"children\":[]}"
+            } shouldBe "{\"name\":\"m1\"}"
 
             write {
                 ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("*.name"), Path())
