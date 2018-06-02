@@ -23,6 +23,9 @@
 
 package com.github.jacokoo.json
 
+import java.io.OutputStream
+import java.io.Writer
+
 class JSON private constructor(
     matcher: PathMatcher,
     context: SerializeContext = SerializeContext.DEFAULT,
@@ -33,7 +36,14 @@ class JSON private constructor(
     constructor(context: SerializeContext, vararg paths: String): this(PathMatcher.create(*paths), context)
     constructor(matcher: PathMatcher, vararg serializers: Pair<Class<*>, Serializer>): this(matcher, SerializeContext.register(*serializers))
 
-    fun stringify(obj: Any?) = obj?.let { o -> DefaultOutput().also { write(it, o) }.toString() } ?: ""
+    fun stringify(obj: Any?) =
+        obj?.let { o -> DefaultOutput().also { write(it, o) }.toString() } ?: ""
+
+    fun write(stream: OutputStream, obj: Any?) =
+        obj?.let { o -> stream.bufferedWriter().also { write(it, o) }.flush() }
+
+    fun write(writer: Writer, obj: Any?) =
+        obj?.let { o -> StreamOutput(writer).also { write(it, o) } }
 
     override fun write(output: Output, obj: Any) {
         get(obj::class.java).write(output, obj)

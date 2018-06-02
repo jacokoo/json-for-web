@@ -23,6 +23,8 @@
 
 package com.github.jacokoo.json
 
+import java.io.Writer
+
 interface Output {
     fun key(key: String) {
         writeQuoted(key)
@@ -115,4 +117,35 @@ class DefaultOutput(private val sb: StringBuilder = StringBuilder()): Output {
     }
 
     override fun toString() = sb.toString()
+}
+
+class StreamOutput(val writer: Writer): Output {
+    override fun write(item: Int) {
+        writer.write(Integer.toString(item))
+    }
+
+    override fun write(item: Long) {
+        writer.write(item.toString())
+    }
+
+    override fun write(item: Double) {
+        writer.write(item.toString())
+    }
+
+    override fun write(item: Float) {
+        writer.write(item.toString())
+    }
+
+    override fun write(item: Boolean) {
+        writer.write(item.toString())
+    }
+
+    override fun write(item: Char) {
+        writer.write(item.toString())
+    }
+
+    override fun write(item: String) {
+        writer.write(item)
+    }
+
 }

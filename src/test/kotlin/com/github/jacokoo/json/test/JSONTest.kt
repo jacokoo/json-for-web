@@ -26,6 +26,7 @@ package com.github.jacokoo.json.test
 import com.github.jacokoo.json.*
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec
+import java.io.ByteArrayOutputStream
 
 class MenuSerializer: Serializer {
     override fun write(output: Output, obj: Any) {
@@ -43,6 +44,20 @@ class JSONTest: FreeSpec({
         "customize serializer" {
             JSON(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
                 .stringify(Menu.create()) shouldBe "menu"
+        }
+
+        "stream" {
+            ByteArrayOutputStream().also {
+                JSON(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
+                    .write(it, Menu.create())
+            }.toByteArray().toString(Charsets.UTF_8) shouldBe "menu"
+
+            ByteArrayOutputStream().also {
+                val w = it.writer()
+                JSON(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
+                    .write(w, Menu.create())
+                w.flush()
+            }.toByteArray().toString(Charsets.UTF_8) shouldBe "menu"
         }
     }
 })

@@ -24,14 +24,23 @@
 package com.github.jacokoo.json.test
 
 import com.github.jacokoo.json.DefaultOutput
+import com.github.jacokoo.json.StreamOutput
 import io.kotlintest.be
 import io.kotlintest.should
 import io.kotlintest.specs.FreeSpec
+import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 
 class OutputTest: FreeSpec({
     fun write(block: (DefaultOutput) -> Unit): String =
         DefaultOutput().also { block(it) }.toString()
+
+    fun stream(block: (StreamOutput) -> Unit): String =
+        ByteArrayOutputStream().also {
+            val w = it.writer()
+            block(StreamOutput(w))
+            w.flush()
+        }.toByteArray().toString(Charsets.UTF_8)
 
     "Output" - {
         "write numbers" {
@@ -82,5 +91,23 @@ class OutputTest: FreeSpec({
         "write object" {
             write { it.`object` { this.write(1) } } should be("{1}")
         }
+
+        "stream output" {
+            stream { it.write(1) } should be("1")
+            stream { it.write(1L) } should be("1")
+            stream { it.write(1.0f) } should be("1.0")
+            stream { it.write(1.23) } should be("1.23")
+            stream { it.write(1.23e10) } should be("1.23E10")
+            stream { it.write(-1.23e-10) } should be("-1.23E-10")
+            stream { it.write(1.toByte()) } should be("1")
+            stream { it.write(1.toShort()) } should be("1")
+
+            stream { it.write(BigDecimal("1.23e10")) } should be("1.23E+10")
+            stream { it.write(BigDecimal("-1.23e-10")) } should be("-1.23E-10")
+            stream { it.write(true) } should be("true")
+            stream { it.write(false) } should be("false")
+            stream { it.write('c') } should be("c")
+        }
     }
+
 })
