@@ -33,6 +33,7 @@
 
     <properties>
         <kotlin.version>1.2.41</kotlin.version>
+        <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
@@ -93,6 +94,25 @@
                         <version>1.2.0</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
