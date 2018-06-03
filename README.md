@@ -1,4 +1,5 @@
-# JSON For Web
+# JSON For Web 
+[![Build Status](https://travis-ci.org/jacokoo/json-for-web.svg?branch=master)](https://travis-ci.org/jacokoo/json-for-web)
 
 这个库主要用于`Web`请求返回`JSON`, 只有从`Java`到`JSON`的序列化, 没有从`JSON`到`Java`的反序列化. 相应的, 它提供非常灵活的字段过滤功能.
 
