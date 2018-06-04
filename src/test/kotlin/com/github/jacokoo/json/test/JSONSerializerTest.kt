@@ -34,27 +34,27 @@ class MenuSerializer: Serializer {
     }
 }
 
-class JSONTest: FreeSpec({
-    "JSON" - {
+class JSONSerializerTest: FreeSpec({
+    "JSONSerializer" - {
         "stringify" {
-            JSON("(^children)").stringify(Menu.create()) shouldBe "{\"name\":\"m1\"}"
-            JSON(SerializeContext.DEFAULT, "*").stringify(null) shouldBe ""
+            JSONSerializer("(^children)").stringify(Menu.create()) shouldBe "{\"name\":\"m1\"}"
+            JSONSerializer(SerializeContext.DEFAULT, "*").stringify(null) shouldBe ""
         }
 
         "customize serializer" {
-            JSON(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
+            JSONSerializer(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
                 .stringify(Menu.create()) shouldBe "menu"
         }
 
         "stream" {
             ByteArrayOutputStream().also {
-                JSON(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
+                JSONSerializer(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
                     .write(it, Menu.create())
             }.toByteArray().toString(Charsets.UTF_8) shouldBe "menu"
 
             ByteArrayOutputStream().also {
                 val w = it.writer()
-                JSON(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
+                JSONSerializer(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
                     .write(w, Menu.create())
                 w.flush()
             }.toByteArray().toString(Charsets.UTF_8) shouldBe "menu"

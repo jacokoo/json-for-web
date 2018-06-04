@@ -27,10 +27,10 @@ enum class MatchResult {
     INCLUDED, NOT_FOUND, EXCLUDED
 }
 
-data class Path internal constructor(val items: List<String> = listOf()) {
+data class Path internal constructor(private val items: List<String> = listOf()) {
     val depth: Int = items.size
     operator fun get(level: Int): String = items[level]
-    fun push(name: String): Path = Path(items + name)
+    fun push(name: String): Path = copy(items + name)
 
     override fun toString() = "Path: ${items.joinToString(".")}"
 }

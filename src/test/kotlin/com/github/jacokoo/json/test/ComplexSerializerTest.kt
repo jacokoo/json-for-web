@@ -128,7 +128,7 @@ class ComplexSerializerTest: FreeSpec({
         "null should be ignored" {
             write {
                 MapSerializer(SerializeContext.DEFAULT, PathMatcher.create("a"), Path())
-                    .write(it, mapOf("a" to null, null to 2))
+                    .write(it, mapOf("a" to null, null to 2, null to null))
             } shouldBe "{}"
 
         }
