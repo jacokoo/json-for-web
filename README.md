@@ -100,8 +100,7 @@
     // foo 与 baz 的 id 和 name 字段都包含了
     public Bar getBar() {}
 
-    @JSON("foo.id")
-    @JSON("baz.name")
+    @JSON({"foo.id", "baz.name"})
     // 仅包含 foo 的 id 字段与 baz 的 name 字段
     public Bar getBar() {}
 ```
