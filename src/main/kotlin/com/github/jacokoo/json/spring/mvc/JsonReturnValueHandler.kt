@@ -25,6 +25,7 @@ package com.github.jacokoo.json.spring.mvc
 
 import com.github.jacokoo.json.JSONSerializer
 import org.springframework.core.MethodParameter
+import org.springframework.http.MediaType
 import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.method.support.ModelAndViewContainer
@@ -49,6 +50,7 @@ class JsonReturnValueHandler: HandlerMethodReturnValueHandler {
         }
         mavContainer.isRequestHandled = true
         val response = webRequest.getNativeResponse(HttpServletResponse::class.java)!!
+        response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
         json.write(response.outputStream, returnValue)
     }
 }
