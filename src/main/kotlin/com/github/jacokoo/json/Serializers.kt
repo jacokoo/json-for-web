@@ -101,42 +101,38 @@ class EmptySerializer: Serializer {
 }
 
 abstract class ComplexSerializer(protected val context: SerializeContext, protected val matcher: PathMatcher, protected val path: Path): Serializer {
-    protected val map = mutableMapOf<Class<*>, Serializer>()
+    protected val map = mutableMapOf<String, Serializer>()
 
-    protected fun get(clazz: Class<*>, key: String? = null): Serializer {
-        val ser = context[clazz] ?: map[clazz]
-        if (ser != null) return ser
-        val p = key?.let { path.push(key) } ?: path
-
-        if (clazz.isArray) {
-            if (p.depth > matcher.maxDepth) return cache(clazz, EmptySerializer.DEFAULT)
-            return cache(clazz, ArraySerializer(context, matcher, p))
+    protected fun get(clazz: Class<*>, key: String? = null): Serializer = context[clazz] ?: {
+        (key?.let { "$it-${clazz.name}" } ?: clazz.name).let { ck ->
+            map[ck] ?: doGet(clazz, key?.let { path.push(key) } ?: path).also {
+                map[ck] = it
+            }
         }
+    }()
 
-        if (Collection::class.java.isAssignableFrom(clazz)) {
-            if (p.depth > matcher.maxDepth) return cache(clazz, EmptySerializer.DEFAULT)
-            return cache(clazz, CollectionSerializer(context, matcher, p))
+    protected fun doGet(clazz: Class<*>, current: Path): Serializer = when {
+        clazz.isArray -> when {
+            current.depth > matcher.maxDepth -> EmptySerializer.DEFAULT
+            else -> ArraySerializer(context, matcher, current)
         }
-
-        if (Map::class.java.isAssignableFrom(clazz)) {
-            if (p.depth >= matcher.maxDepth) return cache(clazz, EmptySerializer.DEFAULT)
-            return cache(clazz, MapSerializer(context, matcher, p))
+        Collection::class.java.isAssignableFrom(clazz) -> when {
+            current.depth > matcher.maxDepth -> EmptySerializer.DEFAULT
+            else -> CollectionSerializer(context, matcher, current)
         }
-
-        if (Number::class.java.isAssignableFrom(clazz)) {
-            return cache(clazz, ToStringSerializer())
+        Map::class.java.isAssignableFrom(clazz) -> when {
+            current.depth >= matcher.maxDepth -> EmptySerializer.DEFAULT
+            else -> MapSerializer(context, matcher, current)
         }
-
-        val pkg = clazz.`package`.name
-        if (pkg.startsWith("java") || pkg.startsWith("kotlin")) {
-            return cache(clazz, ToQuotedStringSerializer())
+        Number::class.java.isAssignableFrom(clazz) ->
+            ToStringSerializer()
+        clazz.`package`.name.let { it.startsWith("java") || it.startsWith("kotlin") } ->
+            ToQuotedStringSerializer()
+        else -> when {
+            current.depth >= matcher.maxDepth -> EmptySerializer.DEFAULT
+            else -> ObjectSerializer(clazz, context, matcher, current)
         }
-
-        if (p.depth >= matcher.maxDepth) return cache(clazz, EmptySerializer.DEFAULT)
-        return cache(clazz, ObjectSerializer(clazz, context, matcher, p))
     }
-
-    private fun cache(clazz: Class<*>, ser: Serializer) = ser.also { map[clazz] = it }
 
     private fun <T> next(it: Iterator<T>, clazz: (T) -> Class<*>): Pair<T, Serializer>? {
         while (it.hasNext()) {
@@ -205,8 +201,7 @@ class ObjectSerializer(private val clazz: Class<*>, context: SerializeContext, m
 
     init {
         items = clazz.methods.filter {
-            it.modifiers and Modifier.PUBLIC != 0
-            && it.modifiers and Modifier.STATIC == 0
+            it.modifiers and Modifier.STATIC == 0
             && it.name != "getClass"
             && it.name.startsWith("get") && it.parameterCount == 0
         }.map { fieldName(it) to it }.filter {
@@ -236,5 +231,3 @@ class ObjectSerializer(private val clazz: Class<*>, context: SerializeContext, m
         }
     }
 }
-
-

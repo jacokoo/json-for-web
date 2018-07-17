@@ -26,4 +26,4 @@ package com.github.jacokoo.json.spring.mvc
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class JSON(val value: Array<String>)
+annotation class JSON(vararg val value: String)

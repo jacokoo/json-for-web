@@ -34,7 +34,7 @@ import org.springframework.web.context.request.ServletWebRequest
 import org.springframework.web.method.support.ModelAndViewContainer
 
 class Demo {
-    @JSON(["name"])
+    @JSON("name")
     fun foo() = Menu.create()
 
     fun bar() {}

@@ -44,6 +44,8 @@ class JSONSerializerTest: FreeSpec({
         "customize serializer" {
             JSONSerializer(PathMatcher.create("*"), Menu::class.java to MenuSerializer())
                 .stringify(Menu.create()) shouldBe "menu"
+
+            JSONSerializer("*").stringify(null) shouldBe ""
         }
 
         "stream" {
@@ -58,6 +60,16 @@ class JSONSerializerTest: FreeSpec({
                     .write(w, Menu.create())
                 w.flush()
             }.toByteArray().toString(Charsets.UTF_8) shouldBe "menu"
+
+            ByteArrayOutputStream().also {
+                JSONSerializer("*").write(it, null)
+            }.toByteArray().size shouldBe 0
+
+            ByteArrayOutputStream().also {
+                val w = it.writer()
+                JSONSerializer("*").write(w, null)
+                w.flush()
+            }.toByteArray().size shouldBe 0
         }
     }
 })

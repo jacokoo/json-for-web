@@ -32,6 +32,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class Menu(var name: String, var parent: Menu? = null, var children: List<Menu> = listOf()) {
+
+    fun getFoo(str: String): String = "foo"
+
     companion object {
         fun create(): Menu {
             var m1 = Menu("m1")
@@ -44,6 +47,9 @@ class Menu(var name: String, var parent: Menu? = null, var children: List<Menu> 
 
             return m1
         }
+
+        @JvmStatic
+        fun getDemo(value: String): String? = null
     }
 }
 
@@ -150,6 +156,11 @@ class ComplexSerializerTest: FreeSpec({
                 ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("children.name"), Path())
                     .write(it, Menu.create())
             } shouldBe "{\"children\":[{\"name\":\"m2\"},{\"name\":\"m3\"}]}"
+
+            write {
+                ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("(name, parent).name"), Path())
+                    .write(it, Menu.create())
+            } shouldBe "{\"name\":\"m1\"}"
         }
     }
 })

@@ -114,6 +114,7 @@ class PathTest: FreeSpec({
         "at least one item be supplied" {
             shouldThrow<IllegalArgumentException> { PathItem.create("") }
             shouldThrow<IllegalArgumentException> { PathItem.create("()") }
+            shouldThrow<IllegalArgumentException> { PathItem.create("(^)") }
         }
 
         "include all test" {
@@ -213,6 +214,7 @@ class PathTest: FreeSpec({
 
                 it.match(c.push("c")) should be(MatchResult.NOT_FOUND)
                 it.match(c.push("d")) should be(MatchResult.NOT_FOUND)
+                it.match(a.push("c").push("d")) should be(MatchResult.NOT_FOUND)
             }
         }
 
