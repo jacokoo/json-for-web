@@ -30,6 +30,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.ZoneId
 
 class Menu(var name: String, var parent: Menu? = null, var children: List<Menu> = listOf()) {
 
@@ -66,7 +67,7 @@ class ComplexSerializerTest: FreeSpec({
                     PathMatcher.create(),
                     Path()
                 ).write(it, arrayOf(1,2.toBigInteger(),3.toBigDecimal(), date))
-            } should be("[1,2,3,\"${date.toString()}\"]")
+            } should be("[1,2,3,${date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()}]")
         }
 
         "serializer should be cached" {

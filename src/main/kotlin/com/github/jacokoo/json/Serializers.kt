@@ -23,9 +23,11 @@
 
 package com.github.jacokoo.json
 
+import jdk.nashorn.internal.runtime.QuotedStringTokenizer
 import java.lang.reflect.Array
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
@@ -90,6 +92,13 @@ class LocalDateTimeSerializer: Serializer {
         output.write((obj as LocalDateTime).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
     }
 }
+
+class LocalDateSerializer: Serializer {
+    override fun write(output: Output, obj: Any) {
+        output.write((obj as LocalDate).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
+    }
+}
+
 class EmptySerializer: Serializer {
     override fun write(output: Output, obj: Any) {
     }
@@ -97,6 +106,20 @@ class EmptySerializer: Serializer {
 
     companion object {
         val DEFAULT = EmptySerializer()
+    }
+}
+
+class IntEnumSerializer: Serializer {
+    override fun write(output: Output, obj: Any) {
+        val en = obj::class.java as Class<Enum<*>>
+        output.write(en.enumConstants.indexOf(obj))
+    }
+}
+
+class StringEnumSerializer: Serializer {
+    private val ser = ToQuotedStringSerializer()
+    override fun write(output: Output, obj: Any) {
+        ser.write(output, obj)
     }
 }
 
@@ -128,6 +151,10 @@ abstract class ComplexSerializer(protected val context: SerializeContext, protec
             ToStringSerializer()
         clazz.`package`.name.let { it.startsWith("java") || it.startsWith("kotlin") } ->
             ToQuotedStringSerializer()
+        clazz.isEnum -> when {
+            current.depth > matcher.maxDepth -> EmptySerializer.DEFAULT
+            else -> context.enumSerializer
+        }
         else -> when {
             current.depth >= matcher.maxDepth -> EmptySerializer.DEFAULT
             else -> ObjectSerializer(clazz, context, matcher, current)
@@ -231,3 +258,5 @@ class ObjectSerializer(private val clazz: Class<*>, context: SerializeContext, m
         }
     }
 }
+
+

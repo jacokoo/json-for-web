@@ -23,10 +23,11 @@
 
 package com.github.jacokoo.json
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-data class SerializeContext(private val serializers: Map<Class<*>, Serializer>) {
+data class SerializeContext(private val serializers: Map<out Class<*>, Serializer>, val enumSerializer: Serializer = IntEnumSerializer()) {
 
     operator fun get(clazz: Class<out Any>): Serializer? = serializers[clazz]
 
@@ -54,6 +55,7 @@ data class SerializeContext(private val serializers: Map<Class<*>, Serializer>) 
             String::class.java to StringSerializer(),
 
             Date::class.java to DateSerializer(),
+            LocalDate::class.java to LocalDateSerializer(),
             LocalDateTime::class.java to LocalDateTimeSerializer()
         )
 
