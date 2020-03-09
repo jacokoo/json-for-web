@@ -35,7 +35,8 @@ data class SerializeContext(private val serializers: Map<out Class<*>, Serialize
         this.copy(serializers + (clazz to serializer))
 
     companion object {
-        private val defaults = mutableMapOf(
+        val globals = mutableMapOf<Class<*>, Serializer>()
+        internal val defaults = mapOf(
             Int::class.java to IntSerializer(),
             Integer::class.java to IntSerializer(),
             Long::class.java to LongSerializer(),
@@ -59,10 +60,8 @@ data class SerializeContext(private val serializers: Map<out Class<*>, Serialize
             LocalDateTime::class.java to LocalDateTimeSerializer()
         )
 
-        val DEFAULT = SerializeContext(defaults)
-
         @JvmStatic
-        fun register(vararg pairs: Pair<Class<*>, Serializer>) = SerializeContext(defaults + pairs)
+        fun register(vararg pairs: Pair<Class<*>, Serializer>) = SerializeContext(defaults + globals + pairs)
 
     }
 }

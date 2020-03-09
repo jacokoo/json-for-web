@@ -30,7 +30,7 @@ import java.io.Writer
 
 class JSONSerializer private constructor(
     matcher: PathMatcher,
-    context: SerializeContext = SerializeContext.DEFAULT,
+    context: SerializeContext = SerializeContext(SerializeContext.defaults + SerializeContext.globals),
     path: Path = Path()
 ): ComplexSerializer(context, matcher, path) {
 

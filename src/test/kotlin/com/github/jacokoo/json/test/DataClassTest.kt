@@ -52,12 +52,5 @@ class DataClassTest: FreeSpec({
             it.component3()
             it.copy()
         }
-
-        SerializeContext.DEFAULT.also {
-            it.equals(null)
-            it.equals(it)
-            it.hashCode()
-            it.toString()
-        }
     }
 })

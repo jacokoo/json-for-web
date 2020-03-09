@@ -32,6 +32,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
 
+private val DEFAULT = SerializeContext(SerializeContext.defaults + SerializeContext.globals)
+
+
 class Menu(var name: String, var parent: Menu? = null, var children: List<Menu> = listOf()) {
 
     fun getFoo(str: String): String = "foo"
@@ -63,7 +66,7 @@ class ComplexSerializerTest: FreeSpec({
             val date = LocalDate.now()
             write {
                 ArraySerializer(
-                    SerializeContext.DEFAULT,
+                    DEFAULT,
                     PathMatcher.create(),
                     Path()
                 ).write(it, arrayOf(1,2.toBigInteger(),3.toBigDecimal(), date))
@@ -71,9 +74,9 @@ class ComplexSerializerTest: FreeSpec({
         }
 
         "serializer should be cached" {
-            SerializeContext.DEFAULT[BigDecimal::class.java] shouldBe null
+            DEFAULT[BigDecimal::class.java] shouldBe null
             val output = DefaultOutput()
-            var ser = ArraySerializer(SerializeContext.DEFAULT, PathMatcher.create(), Path())
+            var ser = ArraySerializer(DEFAULT, PathMatcher.create(), Path())
             ser.write(output, arrayOf(1.toBigDecimal()))
 
             val method = ComplexSerializer::class.java.getDeclaredMethod("get", Class::class.java, String::class.java)
@@ -87,27 +90,27 @@ class ComplexSerializerTest: FreeSpec({
 
         "empty object like item should be ignored" {
             write {
-                ArraySerializer(SerializeContext.DEFAULT, PathMatcher.create(), Path())
+                ArraySerializer(DEFAULT, PathMatcher.create(), Path())
                     .write(it, arrayOf(1, "a", Menu("a")))
-            } shouldBe "[1,\"a\"]"
+            } shouldBe """[1,"a"]"""
 
             write {
-                ArraySerializer(SerializeContext.DEFAULT, PathMatcher.create(), Path())
+                ArraySerializer(DEFAULT, PathMatcher.create(), Path())
                     .write(it, arrayOf(1, "a", emptyMap<Int, Int>()))
-            } shouldBe "[1,\"a\"]"
+            } shouldBe """[1,"a"]"""
         }
 
         "nested array" {
             write {
-                ArraySerializer(SerializeContext.DEFAULT, PathMatcher.create(), Path())
+                ArraySerializer(DEFAULT, PathMatcher.create(), Path())
                     .write(it, arrayOf(1, "a", Menu("a"), arrayOf(2, 3, 4)))
-            } shouldBe "[1,\"a\",[2,3,4]]"
+            } shouldBe """[1,"a",[2,3,4]]"""
         }
 
         "primitive array" {
             val arr = IntArray(3, {it})
             write {
-                ArraySerializer(SerializeContext.DEFAULT, PathMatcher.create(), Path())
+                ArraySerializer(DEFAULT, PathMatcher.create(), Path())
                     .write(it, arr)
             } shouldBe "[0,1,2]"
 
@@ -118,7 +121,7 @@ class ComplexSerializerTest: FreeSpec({
         "similar to array" {
             val arr = IntArray(3, {it})
             write {
-                CollectionSerializer(SerializeContext.DEFAULT, PathMatcher.create(), Path())
+                CollectionSerializer(DEFAULT, PathMatcher.create(), Path())
                     .write(it, listOf(arr, 3, listOf(4, 5, 6)))
             } shouldBe "[[0,1,2],3,[4,5,6]]"
         }
@@ -127,41 +130,47 @@ class ComplexSerializerTest: FreeSpec({
     "MapSerializer" - {
         "only included keys should be serialized" {
             write {
-                MapSerializer(SerializeContext.DEFAULT, PathMatcher.create("a"), Path())
+                MapSerializer(DEFAULT, PathMatcher.create("a.1"), Path())
                     .write(it, mapOf("a" to mapOf(1 to 2), "b" to 2))
-            } shouldBe "{\"a\":{}}"
+            } shouldBe """{"a":{"1":2}}"""
         }
 
         "null should be ignored" {
             write {
-                MapSerializer(SerializeContext.DEFAULT, PathMatcher.create("a"), Path())
+                MapSerializer(DEFAULT, PathMatcher.create("a"), Path())
                     .write(it, mapOf("a" to null, null to 2, null to null))
             } shouldBe "{}"
+        }
 
+        "object in map should be ok" {
+            write {
+                MapSerializer(DEFAULT, PathMatcher.create("(a, menu).(name, children).name"), Path())
+                    .write(it, mapOf("a" to 1, "menu" to Menu.create()))
+            } shouldBe """{"a":1,"menu":{"name":"m1","children":[{"name":"m2"},{"name":"m3"}]}}"""
         }
     }
 
     "ObjectSerializer" - {
         "only included keys should be serialized" {
             write {
-                ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("name"), Path())
+                ObjectSerializer(Menu::class.java, DEFAULT, PathMatcher.create("name"), Path())
                     .write(it, Menu.create())
-            } shouldBe "{\"name\":\"m1\"}"
+            } shouldBe """{"name":"m1"}"""
 
             write {
-                ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("(^children)"), Path())
+                ObjectSerializer(Menu::class.java, DEFAULT, PathMatcher.create("(^children)"), Path())
                     .write(it, Menu.create())
-            } shouldBe "{\"name\":\"m1\"}"
+            } shouldBe """{"name":"m1"}"""
 
             write {
-                ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("children.name"), Path())
+                ObjectSerializer(Menu::class.java, DEFAULT, PathMatcher.create("children.name"), Path())
                     .write(it, Menu.create())
-            } shouldBe "{\"children\":[{\"name\":\"m2\"},{\"name\":\"m3\"}]}"
+            } shouldBe """{"children":[{"name":"m2"},{"name":"m3"}]}"""
 
             write {
-                ObjectSerializer(Menu::class.java, SerializeContext.DEFAULT, PathMatcher.create("(name, parent).name"), Path())
+                ObjectSerializer(Menu::class.java, DEFAULT, PathMatcher.create("(name, parent).name"), Path())
                     .write(it, Menu.create())
-            } shouldBe "{\"name\":\"m1\"}"
+            } shouldBe """{"name":"m1"}"""
         }
     }
 })

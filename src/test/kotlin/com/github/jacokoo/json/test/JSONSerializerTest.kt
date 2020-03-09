@@ -38,7 +38,7 @@ class JSONSerializerTest: FreeSpec({
     "JSONSerializer" - {
         "stringify" {
             JSONSerializer("(^children)").stringify(Menu.create()) shouldBe "{\"name\":\"m1\"}"
-            JSONSerializer(SerializeContext.DEFAULT, "*").stringify(null) shouldBe ""
+            JSONSerializer(SerializeContext(SerializeContext.defaults), "*").stringify(null) shouldBe ""
         }
 
         "customize serializer" {

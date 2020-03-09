@@ -48,7 +48,7 @@ class ContextTest: FreeSpec({
         }
 
         "default" {
-            SerializeContext.DEFAULT[Int::class.java]!! should beOfType<IntSerializer>()
+            SerializeContext(SerializeContext.defaults)[Int::class.java]!! should beOfType<IntSerializer>()
         }
     }
 })

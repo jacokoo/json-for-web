@@ -87,15 +87,35 @@ class DateSerializer: Serializer {
         output.write((obj as Date).time)
     }
 }
+class ToZone0DateSerializer: Serializer {
+    override fun write(output: Output, obj: Any) {
+        output.write((obj as Date).time + TimeZone.getDefault().rawOffset)
+    }
+}
+
 class LocalDateTimeSerializer: Serializer {
     override fun write(output: Output, obj: Any) {
         output.write((obj as LocalDateTime).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
     }
 }
 
+class ToZone0LocalDateTimeSerializer: Serializer {
+    override fun write(output: Output, obj: Any) {
+        val millis = (obj as LocalDateTime).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        output.write(millis + TimeZone.getDefault().rawOffset)
+    }
+}
+
 class LocalDateSerializer: Serializer {
     override fun write(output: Output, obj: Any) {
         output.write((obj as LocalDate).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
+    }
+}
+
+class ToZone0LocalDateSerializer: Serializer {
+    override fun write(output: Output, obj: Any) {
+        val millis = (obj as LocalDate).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        output.write(TimeZone.getDefault().rawOffset + millis)
     }
 }
 
@@ -161,26 +181,26 @@ abstract class ComplexSerializer(protected val context: SerializeContext, protec
         }
     }
 
-    private fun <T> next(it: Iterator<T>, clazz: (T) -> Class<*>): Pair<T, Serializer>? {
+    private fun <T> next(it: Iterator<T>, clazz: (T) -> Class<*>, key: (T) -> String?): Pair<T, Serializer>? {
         while (it.hasNext()) {
             val item = it.next()
-            var ser = get(clazz(item))
+            var ser = get(clazz(item), key(item))
 
             if (!ser.isEmpty()) return item to ser
         }
         return null
     }
 
-    protected fun <T> writeIterator(output: Output, it: Iterator<T>, clazz: (T) -> Class<*>, block: (T, Serializer) -> Unit) {
-        var t1 = next(it, clazz)
-        var t2 = next(it, clazz)
+    protected fun <T> writeIterator(output: Output, it: Iterator<T>, clazz: (T) -> Class<*>, block: (T, Serializer) -> Unit, key: (T) -> String? = {null}) {
+        var t1 = next(it, clazz, key)
+        var t2 = next(it, clazz, key)
 
         while (t1 != null) {
             block(t1.first, t1.second)
             if (t2 != null) output.itemEnd()
 
             t1 = t2
-            t2 = next(it, clazz)
+            t2 = next(it, clazz, key)
         }
     }
 }
@@ -216,7 +236,7 @@ class MapSerializer(context: SerializeContext, matcher: PathMatcher, path: Path)
             writeIterator(this, list, {it.second::class.java}, {t, s ->
                 this.key(t.first)
                 s.write(this, t.second)
-            })
+            }, {it.first})
         }
     }
 }
